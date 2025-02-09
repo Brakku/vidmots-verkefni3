@@ -7,6 +7,7 @@ let controller;
 let model = null;
 let currentSession = null;
 
+
 class ARButton {
 
     static createButton(renderer, sessionInit = {}) {
@@ -224,7 +225,7 @@ function init() {
 
     //
 
-    document.body.appendChild(ARButton.createButton(renderer));
+    //document.body.appendChild(ARButton.createButton(renderer));
 
     const customButton = document.createElement('button');
     customButton.textContent = 'Start AR';
