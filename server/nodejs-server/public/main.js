@@ -21,7 +21,7 @@ async function startARSession(renderer, sessionInit) {
 
         currentSession = session;
     } catch (error) {
-        console.error('Failed to start AR session:', error);
+        console.warn('Device does not support AR features:', error);
     }
 }
 
