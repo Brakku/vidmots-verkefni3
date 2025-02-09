@@ -3,6 +3,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
 
+const sessionInit = {
+    requiredFeatures: ['local'],
+    domOverlay: { root: document.body }
+};
+
 async function startARSession(renderer, sessionInit) {
     try {
         const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
@@ -31,12 +36,12 @@ function onSessionEnded() {
 
 class ThreeContainer {
     constructor(id) {
-        let controller;
-        let gmodel = null;
         this.container = document.createElement('div');
         this.container.className = 'three-container';
         this.container.id = `${id}`;
         document.getElementById('grid-container').appendChild(this.container);
+
+
 
         this.width = this.container.clientWidth;
         this.height = this.container.clientHeight;
@@ -88,37 +93,17 @@ class ThreeContainer {
 
         // Add button below the canvas
         const button = document.createElement('button');
-        button.textContent = 'Start AR';
+        button.textContent = `Start AR ${id}`;
         button.style.position = 'relative';
         button.style.zIndex = 1;
-        this.container.appendChild(button);
+        
 
         // Add event listener to the custom button
         button.addEventListener('click', () => {
-            startARSession(this.renderer, {});
-            console.log("Custom button clicked");
+            ARHandler.startARSession(id);
+            console.log(`Custom button ${id} clicked`);
         });
-
-        const loader = new GLTFLoader();
-        function onSelect() {
-            
-            if (!gmodel) {
-                loader.load('./gtlfs/adamHead/adamHead.gltf', function (gltf) {
-                    gmodel = gltf.scene;
-                    gmodel.scale.set(0.1, 0.1, 0.1); // Scale the model to be smaller
-                    gmodel.position.set(0, 0, -0.3).applyMatrix4(controller.matrixWorld);
-                    gmodel.quaternion.setFromRotationMatrix(controller.matrixWorld);
-                    scene.add(model);
-                });
-            } else {
-                gmodel.position.set(0, 0, -0.3).applyMatrix4(controller.matrixWorld);
-                gmodel.quaternion.setFromRotationMatrix(controller.matrixWorld);
-            }
-        }
-    
-        controller = this.renderer.xr.getController(0);
-        controller.addEventListener('select', onSelect);
-        this.scene.add(controller);
+        this.container.appendChild(button);
 
         // handle window resize
         window.addEventListener('resize', () => {
@@ -175,12 +160,131 @@ function addContainers(x) {
     }
 }
 
-addContainers(4);
+addContainers(2);
 
 function addtocontaner(id, geometryType, materialType, size, position, rotation, texturePath = null) {
     containersList[id].addGeometry(geometryType, materialType, size, position, rotation, texturePath);
 }
 
+const ARHandler = {
+    camera: null,
+    scene: null,
+    renderer: null,
+    controller: null,
+    model: null,
+    currentSession: null,
+    id: null,
+
+    async startARSession(idin) {
+        try {
+            const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['local'] });
+            session.addEventListener('end', this.onSessionEnded.bind(this));
+
+            this.renderer.xr.setReferenceSpaceType('local');
+            await this.renderer.xr.setSession(session);
+
+            this.currentSession = session;
+            this.id = idin;
+
+            // Add a history state to handle the back button
+            history.pushState({ arSession: true }, '');
+            window.addEventListener('popstate', this.onBackButtonPressed.bind(this));
+        } catch (error) {
+            console.error('Failed to start AR session:', error);
+        }
+    },
+
+    onSessionEnded() {
+        if (this.currentSession) {
+            this.currentSession.removeEventListener('end', this.onSessionEnded.bind(this));
+        }
+
+        // Remove the model from the scene
+        if (this.model) {
+            this.scene.remove(this.model);
+            this.model = null;
+        }
+
+        // Remove the exit button
+        this.currentSession = null;
+
+        // Remove the history state and event listener
+        history.back();
+        window.removeEventListener('popstate', this.onBackButtonPressed.bind(this));
+    },
+
+    onBackButtonPressed(event) {
+        if (this.currentSession) {
+            this.currentSession.end();
+        }
+
+        this.model = null;
+    },
+
+    init() {
+        this.scene = new THREE.Scene();
+
+        this.camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+        const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 3);
+        light.position.set(0.5, 1, 0.25);
+        this.scene.add(light);
+
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setAnimationLoop(this.animate.bind(this));
+        this.renderer.xr.enabled = true;
+
+        this.controller = this.renderer.xr.getController(0);
+        console.log('Controller initialized:', this.controller);
+        this.controller.addEventListener('select', this.onSelect.bind(this));
+        this.scene.add(this.controller);
+
+        window.addEventListener('resize', this.onWindowResize.bind(this));
+    },
+
+    onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    },
+
+    animate() {
+        this.renderer.render(this.scene, this.camera);
+    },
+
+    onSelect() {
+        console.log('onSelect event triggered');
+        if (this.model) {
+            this.model.position.set(0, 0, -0.3).applyMatrix4(this.controller.matrixWorld);
+            this.model.quaternion.setFromRotationMatrix(this.controller.matrixWorld);
+        }
+        else{
+            this.loadModel(this.id);
+        }
+    },
+
+    loadModel(id) {
+        console.log('loadModel');
+        const loader = new GLTFLoader();
+        const modelPaths = [
+            '',
+            './gtlfs/underdasee/scene.gltf',
+            './gtlfs/adamHead/adamHead.gltf'
+        ];
+
+        loader.load(modelPaths[id], (gltf) => {
+            this.model = gltf.scene;
+            this.model.scale.set(0.02, 0.02, 0.02); // Scale down the model
+            this.model.position.set(0, 0, -0.3).applyMatrix4(this.controller.matrixWorld);
+            this.model.quaternion.setFromRotationMatrix(this.controller.matrixWorld);
+            this.scene.add(this.model);
+        });
+    }
+};
+
+ARHandler.init();
 
 function addgtlf(id, url, position, rotation, scale = { x: 1, y: 1, z: 1 }) {
     const loader = new GLTFLoader();
@@ -201,8 +305,6 @@ addgtlf(2, './gtlfs/adamHead/adamHead.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -9
 
 
 addtocontaner(0, 'BoxGeometry', 'MeshStandardMaterial', { width: 0.2, height: 0.2, depth: 0.2 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
-
-
 
 
 function logToConsoleOutput(message) {
