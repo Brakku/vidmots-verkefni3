@@ -1,0 +1,15 @@
+{
+  "name": "nodejs-server",
+  "version": "1.0.0",
+  "description": "A simple Node.js server to serve an AR application using Three.js.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "node": "^23.7.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

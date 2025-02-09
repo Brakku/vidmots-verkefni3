@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>	
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Teningur</title>
+	<style>
+		body { 
+			margin: 0; 
+			display: flex; 
+			justify-content: center; 
+			align-items: center; 
+			min-height: 100vh; 
+			background-color: #f0f0f0;
+		}
+		main {
+			width: 80%;
+            min-height: 100vh;
+            background-color: yellow;			
+		}
+		.three-container {
+			width: 100%;
+			height: 0;
+			padding-bottom: 100%;
+			position: relative;
+		}
+		canvas {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+		}
+        .grid-container {
+            display: grid;
+			grid-template-columns: repeat(4, 1fr);
+            padding: 1em;
+			gap: 10px;
+        }
+        @media (max-width: 1200px) {
+            .grid-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            main {
+                width: 90%;
+            }
+        }
+        @media (max-width: 600px) {
+            main {
+                width: 100%;
+            }
+            .grid-container {
+                grid-template-columns: repeat(1, 1fr);
+            }
+        }
+	</style>
+    
+    <script type="importmap">
+        {
+            "imports": {
+               "three": "https://unpkg.com/three@0.132.2/build/three.module.js"
+            }
+        }
+     </script>    
+</head>
+
+<body>
+    <main>
+        <div class="grid-container" id="grid-container"></div>
+        <div id="console-output" style="border: 1px solid black; height: 200px; overflow-y: scroll;"></div>
+    </main>
+    <script type="module" src="main.js"></script>
+    
+</body>
+</html>
