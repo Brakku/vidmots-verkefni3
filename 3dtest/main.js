@@ -3,9 +3,36 @@ import * as THREE from 'three';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
 
+async function startARSession(renderer, sessionInit) {
+    try {
+        const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
+        session.addEventListener('end', onSessionEnded);
+
+        renderer.xr.setReferenceSpaceType('local');
+        await renderer.xr.setSession(session);
+
+        document.getElementById('ARButton').textContent = 'STOP AR';
+        sessionInit.domOverlay.root.style.display = '';
+
+        currentSession = session;
+    } catch (error) {
+        console.error('Failed to start AR session:', error);
+    }
+}
+
+function onSessionEnded() {
+    currentSession.removeEventListener('end', onSessionEnded);
+
+    document.getElementById('ARButton').textContent = 'START AR';
+    sessionInit.domOverlay.root.style.display = 'none';
+
+    currentSession = null;
+}
 
 class ThreeContainer {
     constructor(id) {
+        let controller;
+        let gmodel = null;
         this.container = document.createElement('div');
         this.container.className = 'three-container';
         this.container.id = `${id}`;
@@ -23,9 +50,6 @@ class ThreeContainer {
         const color = new THREE.Color("rgb(255, 146, 146)");
         this.scene.background = color;
         this.scene.backgroundBlurriness = 0;
-
-
-
 
         const light = new THREE.DirectionalLight( 0xffffff, 6 );
         light.position.set( 0.5, 1, 0.5 );
@@ -62,13 +86,49 @@ class ThreeContainer {
         this.controls.maxDistance = 500;
         this.controls.maxPolarAngle = 360;
 
+        // Add button below the canvas
+        const button = document.createElement('button');
+        button.textContent = 'Start AR';
+        button.style.position = 'relative';
+        button.style.zIndex = 1;
+        this.container.appendChild(button);
+
+        // Add event listener to the custom button
+        button.addEventListener('click', () => {
+            startARSession(this.renderer, {});
+            console.log("Custom button clicked");
+        });
+
+        const loader = new GLTFLoader();
+        function onSelect() {
+            
+            if (!gmodel) {
+                loader.load('./gtlfs/adamHead/adamHead.gltf', function (gltf) {
+                    gmodel = gltf.scene;
+                    gmodel.scale.set(0.1, 0.1, 0.1); // Scale the model to be smaller
+                    gmodel.position.set(0, 0, -0.3).applyMatrix4(controller.matrixWorld);
+                    gmodel.quaternion.setFromRotationMatrix(controller.matrixWorld);
+                    scene.add(model);
+                });
+            } else {
+                gmodel.position.set(0, 0, -0.3).applyMatrix4(controller.matrixWorld);
+                gmodel.quaternion.setFromRotationMatrix(controller.matrixWorld);
+            }
+        }
+    
+        controller = this.renderer.xr.getController(0);
+        controller.addEventListener('select', onSelect);
+        this.scene.add(controller);
+
         // handle window resize
         window.addEventListener('resize', () => {
-            this.width = this.container.clientWidth;
-            this.height = this.container.clientHeight;
-            this.camera.aspect = this.width / this.height;
-            this.camera.updateProjectionMatrix();
-            this.renderer.setSize(this.width, this.height);
+            if (!this.renderer.xr.isPresenting) {
+                this.width = this.container.clientWidth - 10;
+                this.height = this.container.clientHeight - 10;
+                this.camera.aspect = this.width / this.height;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(this.width, this.height);
+            }
         });
 
         // animation
@@ -141,3 +201,52 @@ addgtlf(2, './gtlfs/adamHead/adamHead.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -9
 
 
 addtocontaner(0, 'BoxGeometry', 'MeshStandardMaterial', { width: 0.2, height: 0.2, depth: 0.2 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+
+
+
+
+function logToConsoleOutput(message) {
+    const consoleOutput = document.getElementById('console-output');
+    const messageElement = document.createElement('div');
+    messageElement.textContent = message;
+    consoleOutput.appendChild(messageElement);
+}
+
+const originalConsoleLog = console.log;
+console.log = function (...args) {
+    logToConsoleOutput(`Log: ${args.join(' ')}`);
+    originalConsoleLog.apply(console, args);
+};
+
+const originalConsoleError = console.error;
+console.error = function (...args) {
+    logToConsoleOutput(`Error: ${args.join(' ')}`);
+    originalConsoleError.apply(console, args);
+};
+
+const originalConsoleWarn = console.warn;
+console.warn = function (...args) {
+    logToConsoleOutput(`Warn: ${args.join(' ')}`);
+    originalConsoleWarn.apply(console, args);
+};
+
+const originalConsoleInfo = console.info;
+console.info = function (...args) {
+    logToConsoleOutput(`Info: ${args.join(' ')}`);
+    originalConsoleInfo.apply(console, args);
+};
+
+window.addEventListener('error', (event) => {
+    logToConsoleOutput(`Error: ${event.message}`);
+});
+
+const originalAlert = window.alert;
+window.alert = function (message) {
+    logToConsoleOutput(`Alert: ${message}`);
+    originalAlert(message);
+};
+
+function causeError() {
+    nonExistentFunction(); // This will cause a ReferenceError
+}
+console.log("main.js loaded");
