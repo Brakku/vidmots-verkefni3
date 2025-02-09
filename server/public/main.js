@@ -269,7 +269,7 @@ const ARHandler = {
         console.log('loadModel');
         const loader = new GLTFLoader();
         const modelPaths = [
-            '',
+            './gtlfs/cube/cube.gltf',
             './gtlfs/underdasee/scene.gltf',
             './gtlfs/adamHead/adamHead.gltf'
         ];
