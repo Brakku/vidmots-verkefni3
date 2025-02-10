@@ -146,6 +146,31 @@ function addtocontaner(id, geometryType, materialType, size, position, rotation,
     containersList[id].addGeometry(geometryType, materialType, size, position, rotation, texturePath);
 }
 
+
+function addgtlf(id, url, position, rotation, scale = { x: 1, y: 1, z: 1 },idin=null) {
+    const loader = new GLTFLoader();
+    loader.load(url, function (gltf) {
+        const model = gltf.scene;
+        model.position.set(position.x, position.y, position.z);
+        model.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
+        model.scale.set(scale.x, scale.y, scale.z);
+        model.castShadow = true; //default is false
+        model.receiveShadow = true; //default
+        model.name = idin;
+        containersList[id].scene.add(model);
+    });
+}
+
+//addtocontaner(0, 'BoxGeometry', 'MeshStandardMaterial', { width: 0.2, height: 0.2, depth: 0.2 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 },"0");
+
+addgtlf(0, './gtlfs/cube/cube.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"0");
+
+addgtlf(1, './gtlfs/underdasee/scene.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"1");
+
+addgtlf(2, './gtlfs/adamHead/adamHead.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"2");
+
+
+
 const ARHandler = {
     camera: null,
     scene: null,
@@ -265,31 +290,6 @@ const ARHandler = {
 };
 
 ARHandler.init();
-
-function addgtlf(id, url, position, rotation, scale = { x: 1, y: 1, z: 1 },idin=null) {
-    const loader = new GLTFLoader();
-    loader.load(url, function (gltf) {
-        const model = gltf.scene;
-        model.position.set(position.x, position.y, position.z);
-        model.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
-        model.scale.set(scale.x, scale.y, scale.z);
-        model.castShadow = true; //default is false
-        model.receiveShadow = true; //default
-        model.name = idin;
-        containersList[id].scene.add(model);
-    });
-}
-
-//addtocontaner(0, 'BoxGeometry', 'MeshStandardMaterial', { width: 0.2, height: 0.2, depth: 0.2 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 },"0");
-
-addgtlf(0, './gtlfs/cube/cube.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"0");
-
-addgtlf(1, './gtlfs/underdasee/scene.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"1");
-
-addgtlf(2, './gtlfs/adamHead/adamHead.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"2");
-
-
-
 
 
 function logToConsoleOutput(message) {

@@ -69,8 +69,9 @@ class ThreeContainer {
 
         // Add event listener to the custom button
         button.addEventListener('click', () => {
-            ARHandler.startARSession(id);
             console.log(`Custom button ${id} clicked`);
+            ARHandler.startARSession(id);
+            
         });
         this.container.appendChild(button);
 
@@ -89,7 +90,7 @@ class ThreeContainer {
         this.animate();
     }
 
-    addGeometry(geometryType, materialType, size, position, rotation, texturePath = null) {
+    addGeometry(geometryType, materialType, size, position, rotation, texturePath = null,id=null) {
         const geometry = new THREE[geometryType](size.width, size.height, size.depth);
         let material;
 
@@ -107,12 +108,22 @@ class ThreeContainer {
             mesh.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
         }
         mesh.castShadow = true; //default is false
+        
+        mesh.name = id;
         mesh.receiveShadow = true; //default
         this.scene.add(mesh);
     }
 
     animate() {
         this.controls.update();
+        
+        // Rotate all models in the scene
+        this.scene.traverse((object) => {
+            if (object.isMesh && object.name != 'floor') {
+                object.rotation.y += 0.01; // Adjust the rotation speed as needed
+            }
+        });
+    
         this.renderer.render(this.scene, this.camera);
         requestAnimationFrame(this.animate.bind(this));
     }
@@ -124,7 +135,7 @@ function addContainers(x) {
     for (let i = 0; i <= x; i++) {
         const container = new ThreeContainer(i);
         
-        container.addGeometry('BoxGeometry', 'MeshStandardMaterial', { width: 20, height: 20, depth: 0.1 }, { x: 0, y: -1, z: 0 }, { x: 90, y: 0, z: 0 }, './wood-texture2.jpg');
+        container.addGeometry('BoxGeometry', 'MeshStandardMaterial', { width: 20, height: 20, depth: 0.1 }, { x: 0, y: -1, z: 0 }, { x: 90, y: 0, z: 0 }, './wood-texture2.jpg',"floor");
         containersList.push(container);
     }
 }
@@ -134,6 +145,30 @@ addContainers(2);
 function addtocontaner(id, geometryType, materialType, size, position, rotation, texturePath = null) {
     containersList[id].addGeometry(geometryType, materialType, size, position, rotation, texturePath);
 }
+
+
+function addgtlf(id, url, position, rotation, scale = { x: 1, y: 1, z: 1 },idin=null) {
+    const loader = new GLTFLoader();
+    loader.load(url, function (gltf) {
+        const model = gltf.scene;
+        model.position.set(position.x, position.y, position.z);
+        model.rotation.set(THREE.MathUtils.degToRad(rotation.x), THREE.MathUtils.degToRad(rotation.y), THREE.MathUtils.degToRad(rotation.z));
+        model.scale.set(scale.x, scale.y, scale.z);
+        model.castShadow = true; //default is false
+        model.receiveShadow = true; //default
+        model.name = idin;
+        containersList[id].scene.add(model);
+    });
+}
+
+//addtocontaner(0, 'BoxGeometry', 'MeshStandardMaterial', { width: 0.2, height: 0.2, depth: 0.2 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 },"0");
+
+addgtlf(0, './gtlfs/cube/cube.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"0");
+
+addgtlf(1, './gtlfs/underdasee/scene.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"1");
+
+addgtlf(2, './gtlfs/adamHead/adamHead.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"2");
+
 
 const ARHandler = {
     camera: null,
@@ -267,14 +302,6 @@ function addgtlf(id, url, position, rotation, scale = { x: 1, y: 1, z: 1 }) {
         containersList[id].scene.add(model);
     });
 }
-
-addgtlf(1, './gtlfs/underdasee/scene.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 });
-
-addgtlf(2, './gtlfs/adamHead/adamHead.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 });
-
-
-addtocontaner(0, 'BoxGeometry', 'MeshStandardMaterial', { width: 0.2, height: 0.2, depth: 0.2 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
-
 
 function logToConsoleOutput(message) {
     const consoleOutput = document.getElementById('console-output');
