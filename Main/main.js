@@ -119,7 +119,7 @@ class ThreeContainer {
         
         // Rotate all models in the scene
         this.scene.traverse((object) => {
-            if (object.isMesh && object.name != "floor") {
+            if (object.isMesh && object.name != 'floor') {
                 object.rotation.y += 0.01; // Adjust the rotation speed as needed
             }
         });
@@ -280,7 +280,9 @@ function addgtlf(id, url, position, rotation, scale = { x: 1, y: 1, z: 1 },idin=
     });
 }
 
-addtocontaner(0, 'BoxGeometry', 'MeshStandardMaterial', { width: 0.2, height: 0.2, depth: 0.2 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 },"0");
+//addtocontaner(0, 'BoxGeometry', 'MeshStandardMaterial', { width: 0.2, height: 0.2, depth: 0.2 }, { x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 },"0");
+
+addgtlf(0, './gtlfs/cube/cube.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"0");
 
 addgtlf(1, './gtlfs/underdasee/scene.gltf', { x: 0, y: 0, z: 0 }, { x: 0, y: -90, z: 0 },{ x: 0.08, y: 0.08, z: 0.08 },"1");
 
