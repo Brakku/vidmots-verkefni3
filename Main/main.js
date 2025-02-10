@@ -3,37 +3,6 @@ import * as THREE from 'three';
 import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/loaders/GLTFLoader.js';
 
-const sessionInit = {
-    requiredFeatures: ['local'],
-    domOverlay: { root: document.body }
-};
-
-async function startARSession(renderer, sessionInit) {
-    try {
-        const session = await navigator.xr.requestSession('immersive-ar', sessionInit);
-        session.addEventListener('end', onSessionEnded);
-
-        renderer.xr.setReferenceSpaceType('local');
-        await renderer.xr.setSession(session);
-
-        document.getElementById('ARButton').textContent = 'STOP AR';
-        sessionInit.domOverlay.root.style.display = '';
-
-        currentSession = session;
-    } catch (error) {
-        console.error('Failed to start AR session:', error);
-    }
-}
-
-function onSessionEnded() {
-    currentSession.removeEventListener('end', onSessionEnded);
-
-    document.getElementById('ARButton').textContent = 'START AR';
-    sessionInit.domOverlay.root.style.display = 'none';
-
-    currentSession = null;
-}
-
 class ThreeContainer {
     constructor(id) {
         this.container = document.createElement('div');
